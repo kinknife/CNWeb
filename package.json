@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "express": "^4.16.4",
+    "node-uuid": "^1.4.8",
     "react": "^16.8.3",
     "react-dom": "^16.8.3",
-    "react-scripts": "2.1.5"
+    "react-scripts": "2.1.5",
+    "socket.io": "^2.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
