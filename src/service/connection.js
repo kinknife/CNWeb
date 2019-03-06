@@ -8,20 +8,20 @@ class ConnectionService {
             this.socket = socket;
             this.socket.on('peer.connected', (data) => {
                 let id = data.id
-                this.cb(id)
+                this.cb({type: 'new',id})
             })
         });
     }
 
     createRoom() {
         this.socket.emit('init', null, (roomId, id) => {
-            return {roomId, id, connected: true}
+            this.cb({type: 'init', roomId, id, connected: true})
         });
     }
 
     joinRoom(room) {
         this.socket.emit('init', {room: room}, (roomId, id) => {
-            return {roomId, id, connected: true}
+            this.cb({type: 'join', roomId, id, connected: true})
         });
     }
 

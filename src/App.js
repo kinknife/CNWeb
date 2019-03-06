@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 import {connectionService} from './service/connection';
 
@@ -16,10 +15,19 @@ class App extends Component {
   }
 
   componentDidMount() {
-    connectionService.subcribe(this.makeOffer.bind(this))
+    connectionService.subcribe(this.updateApp.bind(this))
+  }
+
+  updateApp(msg) {
+    console.log(msg)
+  }
+
+  createRoom() {
+    connectionService.createRoom()
   }
 
   getPeerConnection(id) {
+    let self = this
     if (this.state.peerConnections[id]) {
       return this.state.peerConnections[id];
     }
@@ -31,13 +39,14 @@ class App extends Component {
     };
     pc.onaddstream = function (evnt) {
       console.log('Received new stream');
-      // api.trigger('peer.stream', [{
-      //   id: id,
-      //   stream: evnt.stream
-      // }]);
-      // if (!$rootScope.$$digest) {
-      //   $rootScope.$apply();
-      // }
+      let peers = this.state.peers
+      peers.push({
+        id: id,
+        stream: evnt.stream
+      })
+      self.setState({
+        peers: peers
+      })
     };
     return pc;
   }
@@ -93,20 +102,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+        <button onClick={() => {this.createRoom()}}>Create Room</button>
       </div>
     );
   }
