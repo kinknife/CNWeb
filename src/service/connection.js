@@ -10,18 +10,22 @@ class ConnectionService {
                 let id = data.id
                 this.cb({type: 'new',id})
             })
+            this.socket.on('incomeMsg', (data) => {
+                console.log('msg', data)
+                this.handleMessage(data)
+            })
         });
     }
 
-    createRoom() {
-        this.socket.emit('init', null, (roomId, id) => {
+    createRoom(name) {
+        this.socket.emit('init', {name: name}, (roomId, id) => {
             this.cb({type: 'init', roomId, id, connected: true})
         });
     }
 
     joinRoom(room) {
-        this.socket.emit('init', {room: room}, (roomId, id) => {
-            this.cb({type: 'join', roomId, id, connected: true})
+        this.socket.emit('init', {name: room}, (roomId, id) => {
+            this.cb({type: 'init', roomId, id, connected: true})
         });
     }
 
@@ -31,6 +35,10 @@ class ConnectionService {
 
     subcribe(cb) {
         this.cb = cb;
+    }
+
+    getMessagehandler(cb) {
+        this.handleMessage = cb;
     }
 }
 

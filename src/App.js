@@ -1,29 +1,83 @@
 import React, { Component } from 'react';
 import './App.css';
-import {connectionService} from './service/connection';
+import { connectionService } from './service/connection';
 
 class App extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      peerConnection: {},
-      iceConfig: { 'iceServers': [{ 'url': 'stun:stun.l.google.com:19302' }]},
+      peers: [],
+      peerConnections: {},
+      iceConfig: { 'iceServers': [{ 'url': 'stun:stun.l.google.com:19302' }] },
       stream: null,
-      currentId: null
+      currentId: null,
+      roomId: null,
+      connected: false
     }
   }
 
   componentDidMount() {
-    connectionService.subcribe(this.updateApp.bind(this))
+    connectionService.subcribe(this.updateApp.bind(this));
+    connectionService.getMessagehandler(this.handleMessage.bind(this));
   }
 
   updateApp(msg) {
-    console.log(msg)
+    switch (msg.type) {
+      case 'init':
+        this.setState({
+          roomId: msg.roomId,
+          currentId: msg.id,
+          connected: msg.connected
+        });
+        break;
+      case 'new':
+        this.makeOffer(msg.id);
+        break;
+      default:
+        return;
+    }
   }
 
-  createRoom() {
-    connectionService.createRoom()
+  createRoom(name) {
+    let peers = this.state.peers;
+    navigator.getUserMedia({
+      video: {
+        mediaSource: 'screen'
+      },
+      audio: true
+    }, (s) => {
+      let video = document.createElement('video');
+      video.srcObject = s;
+      video.height = 1080;
+      video.width = 1920;
+      video.key = this.state.currentId;
+      video.autoplay = true;
+      this.videosContainer.appendChild(video);
+      peers.push({id: this.state.currentId, stream: s});
+      this.setState({
+        peers: peers,
+        stream: s
+      });
+    }, (e) => {
+      console.log(e);
+    });
+    connectionService.createRoom(name);
+  }
+
+  joinRoom(name) {
+    navigator.getUserMedia({
+      video: true,
+      audio: true
+    }, (s) => {
+      this.setState({
+        stream: s
+      });
+      
+    connectionService.joinRoom(name);
+    }, (e) => {
+      console.log(e);
+    })
   }
 
   getPeerConnection(id) {
@@ -33,13 +87,14 @@ class App extends Component {
     }
     var pc = new RTCPeerConnection(this.state.iceConfig);
     this.state.peerConnections[id] = pc;
+    let peer = this.state.peers.find(p => p.id = id);
     pc.addStream(this.state.stream);
     pc.onicecandidate = function (evnt) {
-      connectionService.sendMsg({ by: this.state.currentId, to: id, ice: evnt.candidate, type: 'ice' });
+      connectionService.sendMsg({ by: self.state.currentId, to: id, ice: evnt.candidate, type: 'ice' });
     };
     pc.onaddstream = function (evnt) {
       console.log('Received new stream');
-      let peers = this.state.peers
+      let peers = self.state.peers
       peers.push({
         id: id,
         stream: evnt.stream
@@ -61,7 +116,7 @@ class App extends Component {
     }, function (e) {
       console.log(e);
     },
-    { mandatory: { offerToReceiveVideo: true, offerToReceiveAudio: true }});
+      { mandatory: { offerToReceiveVideo: true, offerToReceiveAudio: true } });
   }
 
   handleMessage(data) {
@@ -69,10 +124,12 @@ class App extends Component {
     let self = this
     switch (data.type) {
       case 'sdp-offer':
+        console.log(data.sdp);
         pc.setRemoteDescription(new RTCSessionDescription(data.sdp), function () {
           console.log('Setting remote description by offer');
           pc.createAnswer(function (sdp) {
             pc.setLocalDescription(sdp);
+            console.log(sdp)
             connectionService.sendMsg({ by: self.state.currentId, to: data.by, sdp: sdp, type: 'sdp-answer' });
           }, function (e) {
             console.log(e);
@@ -82,6 +139,7 @@ class App extends Component {
         });
         break;
       case 'sdp-answer':
+        console.log(data.sdp);
         pc.setRemoteDescription(new RTCSessionDescription(data.sdp), function () {
           console.log('Setting remote description by answer');
         }, function (e) {
@@ -91,6 +149,7 @@ class App extends Component {
       case 'ice':
         if (data.ice) {
           console.log('Adding ice candidates');
+          console.log('join');
           pc.addIceCandidate(new RTCIceCandidate(data.ice));
         }
         break;
@@ -102,7 +161,9 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <button onClick={() => {this.createRoom()}}>Create Room</button>
+        <button onClick={() => { this.createRoom('abc') }}>Create Room</button>
+        <button onClick={() => { this.joinRoom('abc')}}>Join Room</button>
+        <div className="videoContainer" ref={(videoContainer) => {this.videosContainer = videoContainer}}></div>
       </div>
     );
   }
