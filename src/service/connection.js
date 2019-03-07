@@ -2,7 +2,7 @@ const io = require('socket.io-client');
 
 class ConnectionService {
     constructor() {
-        let socket = io('localhost:4200');
+        let socket = io(':4200/');
         
         socket.on('connect', () => {
             this.socket = socket;
