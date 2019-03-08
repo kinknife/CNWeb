@@ -4,7 +4,7 @@ class ConnectionService {
     constructor() {
         console.log(process.env)
         let socket
-        if(process.env.NODE_ENV === "development") {
+        if(process.env.REACT_APP_ENV !== 'production') {
             socket = io(':4200/');
         } else {
             socket = io('/');
