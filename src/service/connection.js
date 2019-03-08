@@ -2,7 +2,13 @@ const io = require('socket.io-client');
 
 class ConnectionService {
     constructor() {
-        let socket = io(':4200/');
+        console.log(process.env)
+        let socket
+        if(process.env.NODE_ENV === "development") {
+            socket = io(':4200/');
+        } else {
+            socket = io('/');
+        }
         
         socket.on('connect', () => {
             this.socket = socket;
