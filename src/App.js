@@ -9,7 +9,7 @@ class App extends Component {
     this.state = {
       peers: [],
       peerConnections: {},
-      iceConfig: { 'iceServers': [{ 'url': 'stun:stun.l.google.com:19302' }] },
+      iceConfig: { 'iceServers': [] },
       stream: null,
       currentId: null,
       roomId: null,
@@ -47,16 +47,7 @@ class App extends Component {
       },
       audio: true
     }, (s) => {
-      let video = document.createElement('video');
-      video.srcObject = s;
-      video.height = 1080;
-      video.width = 1920;
-      video.key = this.state.currentId;
-      video.autoplay = true;
-      this.videosContainer.appendChild(video);
-      peers.push({id: this.state.currentId, stream: s});
       this.setState({
-        peers: peers,
         stream: s
       });
     }, (e) => {
@@ -102,6 +93,15 @@ class App extends Component {
       self.setState({
         peers: peers
       })
+      
+      let video = document.createElement('video');
+      video.srcObject = evnt.stream;
+      video.height = 270;
+      video.width = 480;
+      video.key = id;
+      video.id = id;
+      video.autoplay = true;
+      self.videosContainer.appendChild(video);
     };
     return pc;
   }
