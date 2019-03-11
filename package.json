@@ -13,9 +13,9 @@
     "socket.io-client": "^2.2.0"
   },
   "scripts": {
-    "start": "cross-env REACT_APP_ENV=development react-scripts start",
+    "start": "cross-env REACT_APP_ENV=development react-scripts start node index.js",
     "prebuild": " react-scripts build",
-    "build": "cross-env REACT_APP_ENV=production npm run prebuild",
+    "build": "cross-env REACT_APP_ENV=production npm run prebuild node index.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
