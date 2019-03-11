@@ -40,7 +40,6 @@ class App extends Component {
   }
 
   createRoom(name) {
-    let peers = this.state.peers;
     navigator.getUserMedia({
       video: {
         mediaSource: 'screen'
@@ -78,7 +77,6 @@ class App extends Component {
     }
     var pc = new RTCPeerConnection(this.state.iceConfig);
     this.state.peerConnections[id] = pc;
-    let peer = this.state.peers.find(p => p.id = id);
     pc.addStream(this.state.stream);
     pc.onicecandidate = function (evnt) {
       connectionService.sendMsg({ by: self.state.currentId, to: id, ice: evnt.candidate, type: 'ice' });
