@@ -2,7 +2,6 @@ const io = require('socket.io-client');
 
 class ConnectionService {
     constructor() {
-        console.log(process.env)
         let socket
         if(process.env.REACT_APP_ENV !== 'production') {
             socket = io(':4200/');
