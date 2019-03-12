@@ -1,5 +1,5 @@
 {
-  "name": "webrtc",
+  "name": "project",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -14,10 +14,10 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "prebuild": "react-scripts build",
-    "build": "npm run prebuild",
+    "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "heroku-postbuild": "cross-env REACT_APP_ENV=production npm run build"
   },
   "eslintConfig": {
     "extends": "react-app"
