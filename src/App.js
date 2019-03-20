@@ -9,7 +9,23 @@ class App extends Component {
     this.state = {
       peers: [],
       peerConnections: {},
-      iceConfig: { 'iceServers': [] },
+      iceConfig: {
+        'iceServers': [
+          {
+            'url': 'stun:stun.l.google.com:19302'
+          },
+          {
+            'url': 'turn:192.158.29.39:3478?transport=udp',
+            'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+            'username': '28224511:1379330808'
+          },
+          {
+            'url': 'turn:192.158.29.39:3478?transport=tcp',
+            'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+            'username': '28224511:1379330808'
+          }
+        ]
+      },
       stream: null,
       currentId: null,
       roomId: null,
@@ -40,19 +56,32 @@ class App extends Component {
   }
 
   createRoom(name) {
-    navigator.getUserMedia({
-      video: {
-        mediaSource: 'screen'
-      },
-      audio: true
-    }, (s) => {
-      this.setState({
-        stream: s
+    let isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
+    window.getScreenId((e, sourceId,screen_constraints) => {
+      if(!isChrome) {
+        screen_constraints.audio = true;
+      }
+      navigator.getUserMedia(screen_constraints, (s) => {
+        if(isChrome) {
+          navigator.getUserMedia({audio: true}, (audioStream) => {
+            s.addTrack(audioStream.getAudioTracks()[0]);
+            this.setState({
+              stream: s
+            });
+            connectionService.createRoom(name);
+          }, (e) => {
+            console.log(e)
+          })
+        } else {
+          this.setState({
+            stream: s
+          });
+          connectionService.createRoom(name);
+        }
+      }, (e) => {
+        console.log(e);
       });
-    }, (e) => {
-      console.log(e);
-    });
-    connectionService.createRoom(name);
+    })
   }
 
   joinRoom(name) {
@@ -63,8 +92,8 @@ class App extends Component {
       this.setState({
         stream: s
       });
-      
-    connectionService.joinRoom(name);
+
+      connectionService.joinRoom(name);
     }, (e) => {
       console.log(e);
     })
@@ -91,7 +120,7 @@ class App extends Component {
       self.setState({
         peers: peers
       })
-      
+
       let video = document.createElement('video');
       video.srcObject = evnt.stream;
       video.height = 270;
@@ -160,8 +189,8 @@ class App extends Component {
     return (
       <div className="App">
         <button onClick={() => { this.createRoom('abc') }}>Create Room</button>
-        <button onClick={() => { this.joinRoom('abc')}}>Join Room</button>
-        <div className="videoContainer" ref={(videoContainer) => {this.videosContainer = videoContainer}}></div>
+        <button onClick={() => { this.joinRoom('abc') }}>Join Room</button>
+        <div className="videoContainer" ref={(videoContainer) => { this.videosContainer = videoContainer }}></div>
       </div>
     );
   }
