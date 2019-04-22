@@ -1,4 +1,5 @@
 const io = require('socket.io-client');
+const ss = require('socket.io-stream');
 
 class ConnectionService {
     constructor() {
@@ -44,6 +45,14 @@ class ConnectionService {
 
     getMessagehandler(cb) {
         this.handleMessage = cb;
+    }
+
+    saveVideo(recorder) {
+        let stream = ss.createStream();
+        recorder.ondataavailable = (e) => {
+            stream.write(e.data);
+        }
+        this.socket.emit('startRecord', {name: 'abc'});
     }
 }
 

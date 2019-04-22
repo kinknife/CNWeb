@@ -57,17 +57,44 @@ class App extends Component {
 
   createRoom(name) {
     let isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
-    window.getScreenId((e, sourceId,screen_constraints) => {
-      if(!isChrome) {
+    window.getScreenId((e, sourceId, screen_constraints) => {
+      if (!isChrome) {
         screen_constraints.audio = true;
       }
-      navigator.getUserMedia(screen_constraints, (s) => {
-        if(isChrome) {
-          navigator.getUserMedia({audio: true}, (audioStream) => {
+      navigator.mediaDevices.getUserMedia(
+        screen_constraints
+      ).then(
+        (s) => {
+        if (isChrome) {
+          navigator.getUserMedia({ audio: true }, (audioStream) => {
             s.addTrack(audioStream.getAudioTracks()[0]);
+            let options = {mimeType: 'video/webm;codecs=vp9', bitsPerSecond: 100000};
+            let mediaRecorder;
+            try {
+              mediaRecorder = new MediaRecorder(s, options);
+            } catch (e0) {
+              console.log('Unable to create MediaRecorder with options Object: ', options, e0);
+              try {
+                options = {mimeType: 'video/webm;codecs=vp8', bitsPerSecond: 100000};
+                mediaRecorder = new MediaRecorder(s, options);
+              } catch (e1) {
+                console.log('Unable to create MediaRecorder with options Object: ', options, e1);
+                try {
+                  options = 'video/mp4';
+                  mediaRecorder = new MediaRecorder(s, options);
+                } catch (e2) {
+                  alert('MediaRecorder is not supported by this browser.');
+                  console.error('Exception while creating MediaRecorder:', e2);
+                  return;
+                }
+              }
+            }
             this.setState({
-              stream: s
+              stream: s,
+              recorder: mediaRecorder
             });
+            mediaRecorder.start(10)
+            connectionService.saveVideo(mediaRecorder);
             connectionService.createRoom(name);
           }, (e) => {
             console.log(e)
@@ -108,6 +135,10 @@ class App extends Component {
     this.state.peerConnections[id] = pc;
     pc.addStream(this.state.stream);
     pc.onicecandidate = function (evnt) {
+      if(self.state.recorder && self.state.recorder.state === 'inactive') {
+        self.state.recorder.start();
+      }
+      console.log(self.state.recorder)
       connectionService.sendMsg({ by: self.state.currentId, to: id, ice: evnt.candidate, type: 'ice' });
     };
     pc.onaddstream = function (evnt) {
@@ -120,7 +151,6 @@ class App extends Component {
       self.setState({
         peers: peers
       })
-
       let video = document.createElement('video');
       video.srcObject = evnt.stream;
       video.height = 270;
@@ -190,6 +220,11 @@ class App extends Component {
       <div className="App">
         <button onClick={() => { this.createRoom('abc') }}>Create Room</button>
         <button onClick={() => { this.joinRoom('abc') }}>Join Room</button>
+        <button onClick={() => {let recorder = new MediaRecorder(this.state.stream);
+        recorder.start(10)
+        console.log(recorder)
+        recorder.stop();
+        console.log(recorder);}}> start Record</button>
         <div className="videoContainer" ref={(videoContainer) => { this.videosContainer = videoContainer }}></div>
       </div>
     );
