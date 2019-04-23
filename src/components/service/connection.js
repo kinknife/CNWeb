@@ -50,7 +50,7 @@ class ConnectionService {
     saveVideo(recorder) {
         let stream = ss.createStream();
         recorder.ondataavailable = (e) => {
-            stream.write(e.data);
+            // stream.write(e.data);
         }
         this.socket.emit('startRecord', {name: 'abc'});
     }
