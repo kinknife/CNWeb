@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connectionService } from './service/connection';
 
 class SignIn extends Component {
     constructor() {
@@ -22,6 +23,16 @@ class SignIn extends Component {
         e.preventDefault();
     }
 
+    submitSignin() {
+        let user = {
+            email: this.state.email,
+            password: this.state.password
+        };
+        connectionService.signin(user).then(res => {
+            console.log(res, 'signin');
+        })
+    }
+
     render() {
         return (
         <div className="Forms">
@@ -38,7 +49,7 @@ class SignIn extends Component {
             </div>
 
             <div className="Form">
-                <button className="Button">Sign In</button>
+                <button className="Button" onClick={this.submitSignin()}>Sign In</button>
             </div>
         </form>
         </div>
