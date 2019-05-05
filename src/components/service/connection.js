@@ -1,5 +1,4 @@
 const io = require('socket.io-client');
-const ss = require('socket.io-stream');
 
 class ConnectionService {
     constructor() {
@@ -19,7 +18,6 @@ class ConnectionService {
                 this.cb({ type: 'new', id })
             })
             this.socket.on('incomeMsg', (data) => {
-                console.log('msg', data)
                 this.handleMessage(data)
             })
         });
@@ -50,15 +48,21 @@ class ConnectionService {
     }
 
     saveVideo(recorder) {
-        let stream = ss.createStream();
-        recorder.ondataavailable = (e) => {
-            // stream.write(e.data);
-        }
         this.socket.emit('startRecord', { name: 'abc' });
+        recorder.ondataavailable = (e) => {
+            if(recorder.state === 'inactive') {
+                recorder.start(10);
+            }
+            this.socket.emit('recordDta', e.data);
+        }
+        this.socket.on('recording', () => {
+            recorder.start(10);
+        })
     }
 
     signup(user) {
         return fetch(`${this.server}/signup`, {
+            headers: {'Content-Type':'application/json'},
             method: 'POST',
             body: JSON.stringify(user),
             url: `${this.server}`,
@@ -72,8 +76,9 @@ class ConnectionService {
 
     signin(user) {
         return fetch(`${this.server}/signin`, {
+            headers: {'Content-Type':'application/json'},
             method: 'POST',
-            body: JSON.stringify(user),
+            body: user,
             url: `${this.server}`,
             credentials: "same-origin"
         }).then(res => {
