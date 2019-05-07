@@ -78,7 +78,7 @@ class ConnectionService {
         return fetch(`${this.server}/signin`, {
             headers: {'Content-Type':'application/json'},
             method: 'POST',
-            body: user,
+            body: JSON.stringify(user),
             url: `${this.server}`,
             credentials: "same-origin"
         }).then(res => {

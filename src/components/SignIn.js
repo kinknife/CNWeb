@@ -49,7 +49,7 @@ class SignIn extends Component {
             </div>
 
             <div className="Form">
-                <button className="Button" onClick={this.submitSignin()}>Sign In</button>
+                <button className="Button" onClick={() => this.submitSignin()}>Sign In</button>
             </div>
         </form>
         </div>
