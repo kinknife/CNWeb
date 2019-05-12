@@ -1,44 +1,94 @@
 import React, { Component } from 'react';
+import { setInStorage, getFromStorage } from './utils/storage';
 
 class SignIn extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.state = {
             email: '',
-            password: ''
+            password: '',
+            token: ''
         };
 
-        this.handleChange = this.handleChange.bind(this);
+        this.handleChangeEmail = this.handleChangeEmail.bind(this);
+        this.handleChangePassword = this.handleChangePassword.bind(this);
+        this.submitSignin = this.submitSignin.bind(this);
     }
 
-    handleChange(e) {
+    componentWillMount(){
+      const obj = getFromStorage('cnweb');
+      if (obj && obj.token) {
+        const { token } = obj;
+        fetch('http://localhost:4200/verify?token=' + token)
+          .then(res => res.json())
+          .then(json => {
+            if (json.success) {
+              this.setState({
+                token,
+              });
+            }
+          });
+      }
+    }
+
+    handleChangeEmail(e) {
         this.setState({
-          [e.target.name]: e.target.value
+          email: e.target.value
         });
     }
 
-    handleSubmit(e){
-        e.preventDefault();
+    handleChangePassword(e) {
+        this.setState({
+          password: e.target.value
+        });
+    }
+
+    submitSignin() {
+        const {
+          email,
+          password
+        } = this.state;
+        fetch('http://localhost:4200/signin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: email,
+              password: password,
+            })
+          }).then(res => res.json())
+            .then(json => {
+              if (json.success) {
+                setInStorage('cnweb', { token: json.token });
+                this.setState({
+                  password: '',
+                  email: '',
+                  token: json.token,
+                  message: json.message
+                });
+              }
+            });
     }
 
     render() {
         return (
         <div className="Forms">
-        <form onSubmit={this.handleSubmit}>
+        <form>
             <div className="Title"><h2>Sign In</h2></div>
             <div className="Form">
                 <label className="Label" htmlFor="email">E-Mail Address</label>
-                <input type="email" id="email" className="Input" placeholder="Enter your email" name="email" value={this.state.email} onChange={this.handleChange} autocomplete="off" />
+                <input type="email" id="email" className="Input" placeholder="Enter your email" name="email" onChange={this.handleChangeEmail} value={this.setState.email} autocomplete="off" required/>
             </div>
 
             <div className="Form">
                 <label className="Label" htmlFor="password">Password</label>
-                <input type="password" id="password" className="Input" placeholder="Enter your password" name="password" value={this.state.password} onChange={this.handleChange} autocomplete="off" />
+                <input type="password" id="password" className="Input" placeholder="Enter your password" name="password" onChange={this.handleChangePassword} value={this.setState.password} autocomplete="off" required/>
             </div>
 
             <div className="Form">
-                <button className="Button">Sign In</button>
+                <button className="Button" onClick={this.submitSignin}>Sign In</button>
             </div>
         </form>
         </div>

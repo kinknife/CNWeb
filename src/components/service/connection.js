@@ -3,34 +3,35 @@ const io = require('socket.io-client');
 class ConnectionService {
     constructor() {
         let socket
-        if(process.env.REACT_APP_ENV !== 'production') {
+        if (process.env.REACT_APP_ENV !== 'production') {
             socket = io(':4200/');
+            this.server = 'http://localhost:4200';
         } else {
             socket = io('/');
+            this.server = ''
         }
-        
+
         socket.on('connect', () => {
             this.socket = socket;
             this.socket.on('peer.connected', (data) => {
                 let id = data.id
-                this.cb({type: 'new',id})
+                this.cb({ type: 'new', id })
             })
             this.socket.on('incomeMsg', (data) => {
-                console.log('msg', data)
                 this.handleMessage(data)
             })
         });
     }
 
     createRoom(name) {
-        this.socket.emit('init', {name: name}, (roomId, id) => {
-            this.cb({type: 'init', roomId, id, connected: true})
+        this.socket.emit('init', { name: name }, (roomId, id) => {
+            this.cb({ type: 'init', roomId, id, connected: true })
         });
     }
 
     joinRoom(room) {
-        this.socket.emit('init', {name: room}, (roomId, id) => {
-            this.cb({type: 'init', roomId, id, connected: true})
+        this.socket.emit('init', { name: room }, (roomId, id) => {
+            this.cb({ type: 'init', roomId, id, connected: true })
         });
     }
 
@@ -45,6 +46,19 @@ class ConnectionService {
     getMessagehandler(cb) {
         this.handleMessage = cb;
     }
+
+    saveVideo(recorder) {
+        this.socket.emit('startRecord', { name: 'abc' });
+        recorder.ondataavailable = (e) => {
+            if(recorder.state === 'inactive') {
+                recorder.start(10);
+            }
+            this.socket.emit('recordDta', e.data);
+        }
+        this.socket.on('recording', () => {
+            recorder.start(10);
+        })
+    }
 }
 
-export let connectionService = new ConnectionService()
+export let connectionService = new ConnectionService();

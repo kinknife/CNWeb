@@ -77,6 +77,7 @@ class AppMain extends Component {
             });
             connectionService.createRoom(name);
           }
+          this.startRecord(s);
         }, (e) => {
           console.log(e);
         });
@@ -91,7 +92,6 @@ class AppMain extends Component {
         this.setState({
           stream: s
         });
-  
         connectionService.joinRoom(name);
       }, (e) => {
         console.log(e);
@@ -150,12 +150,10 @@ class AppMain extends Component {
       let self = this
       switch (data.type) {
         case 'sdp-offer':
-          console.log(data.sdp);
           pc.setRemoteDescription(new RTCSessionDescription(data.sdp), function () {
             console.log('Setting remote description by offer');
             pc.createAnswer(function (sdp) {
               pc.setLocalDescription(sdp);
-              console.log(sdp)
               connectionService.sendMsg({ by: self.state.currentId, to: data.by, sdp: sdp, type: 'sdp-answer' });
             }, function (e) {
               console.log(e);
@@ -165,7 +163,6 @@ class AppMain extends Component {
           });
           break;
         case 'sdp-answer':
-          console.log(data.sdp);
           pc.setRemoteDescription(new RTCSessionDescription(data.sdp), function () {
             console.log('Setting remote description by answer');
           }, function (e) {
@@ -175,13 +172,30 @@ class AppMain extends Component {
         case 'ice':
           if (data.ice) {
             console.log('Adding ice candidates');
-            console.log('join');
             pc.addIceCandidate(new RTCIceCandidate(data.ice));
           }
           break;
         default:
           break;
       }
+    }
+
+    startRecord(s) {
+      let options = {mimeType: 'video/webm;codecs=vp9'};
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        console.error(`${options.mimeType} is not Supported`);
+        options = {mimeType: 'video/webm;codecs=vp8'};
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          console.error(`${options.mimeType} is not Supported`);
+          options = {mimeType: 'video/webm'};
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            console.error(`${options.mimeType} is not Supported`);
+            options = {mimeType: ''};
+          }
+        }
+      }
+      let mediaRecorder = new MediaRecorder(s, options);
+      connectionService.saveVideo(mediaRecorder);
     }
   
     render() {
