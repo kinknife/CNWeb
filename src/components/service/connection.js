@@ -20,19 +20,21 @@ class ConnectionService {
             this.socket.on('incomeMsg', (data) => {
                 this.handleMessage(data)
             })
+            this.socket.on('peerDisconnected', (data) => {
+                let message = Object.assign({}, data, {type: 'disconnect'});
+                this.cb(message);
+            })
         });
     }
 
     createRoom(name) {
         this.socket.emit('init', { name: name }, (roomId, id) => {
-            this.cb({ type: 'init', roomId, id, connected: true })
+            this.cb({ type: 'init', roomId, id, })
         });
     }
 
-    joinRoom(room) {
-        this.socket.emit('init', { name: room }, (roomId, id) => {
-            this.cb({ type: 'init', roomId, id, connected: true })
-        });
+    leave() {
+        this.socket.emit('leaveRoom');
     }
 
     sendMsg(msg) {
@@ -50,7 +52,7 @@ class ConnectionService {
     saveVideo(recorder) {
         this.socket.emit('startRecord', { name: 'abc' });
         recorder.ondataavailable = (e) => {
-            if(recorder.state === 'inactive') {
+            if (recorder.state === 'inactive') {
                 recorder.start(10);
             }
             this.socket.emit('recordDta', e.data);
@@ -61,12 +63,11 @@ class ConnectionService {
     }
 
     signup(user) {
+
         return fetch(`${this.server}/signup`, {
-            headers: {'Content-Type':'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             method: 'POST',
-            body: JSON.stringify(user),
-            url: `${this.server}`,
-            credentials: "same-origin"
+            body: JSON.stringify(user)
         }).then(res => {
             return res.json();
         }).then(data => {
@@ -76,16 +77,39 @@ class ConnectionService {
 
     signin(user) {
         return fetch(`${this.server}/signin`, {
-            headers: {'Content-Type':'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             method: 'POST',
             body: JSON.stringify(user),
-            url: `${this.server}`,
-            credentials: "same-origin"
+
         }).then(res => {
             return res.json();
         }).then(data => {
             return data;
         });
+    }
+
+    logout(token) {
+        return fetch(`${this.server}/logout?token=` + token)
+            .then(res => res.json())
+            .then(json => {
+                return json;
+            });
+    }
+
+    verify(token) {
+        return fetch(`${this.server}/verify?token=` + token)
+            .then(res => res.json())
+            .then(json => {
+                return json
+            });
+    }
+
+    getInfo(userId) {
+        return fetch('http://localhost:4200/info?userId=' + userId)
+            .then(res => res.json())
+            .then(json => {
+                return json;
+            });
     }
 }
 
