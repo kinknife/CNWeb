@@ -10,7 +10,21 @@ class AppMain extends Component {
       peers: [],
       peerConnections: {},
       iceConfig: {
-        'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }]
+        'iceServers': [
+          {
+            'url': 'stun:stun.l.google.com:19302'
+          },
+          {
+            'url': 'turn:192.158.29.39:3478?transport=udp',
+            'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+            'username': '28224511:1379330808'
+          },
+          {
+            'url': 'turn:192.158.29.39:3478?transport=tcp',
+            'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+            'username': '28224511:1379330808'
+          }
+        ]
       },
       stream: null,
       currentId: null,
@@ -96,7 +110,7 @@ class AppMain extends Component {
   }
 
   outRoom() {
-    if(this.state.stream && this.state.stream.stop) {
+    if (this.state.stream && this.state.stream.stop) {
       this.state.stream.stop();
     } else {
       let track = this.state.stream.getTracks()[0];
@@ -142,7 +156,7 @@ class AppMain extends Component {
       pc.setLocalDescription(sdp);
       console.log('Creating an offer for', id);
       let message = { by: self.state.currentId, to: id, sdp: sdp, type: 'sdp-offer' };
-      if(self.state.host) {
+      if (self.state.host) {
         message.hostID = self.state.currentId;
       }
       connectionService.sendMsg(message);
@@ -157,7 +171,7 @@ class AppMain extends Component {
     let self = this
     switch (data.type) {
       case 'sdp-offer':
-        if(data.hostID) {
+        if (data.hostID) {
           this.setState({
             hostID: data.hostID
           });
@@ -211,15 +225,15 @@ class AppMain extends Component {
   }
 
   videosRender() {
-    if(this.state.host) {
+    if (this.state.host) {
       return (
         <div className="videoContainer" ref={(videoContainer) => { this.videosContainer = videoContainer }}></div>
       );
     } else {
       return (
         <div className="videoContainer">
-          <div className="hostVideo" ref={(hostVideo) => { this.hostVideo = hostVideo}}></div>
-          <div className="othersVideos" ref={(othersVideos) => {this.othersVideos = othersVideos}}></div>
+          <div className="hostVideo" ref={(hostVideo) => { this.hostVideo = hostVideo }}></div>
+          <div className="othersVideos" ref={(othersVideos) => { this.othersVideos = othersVideos }}></div>
         </div>
       );
     }
@@ -228,14 +242,14 @@ class AppMain extends Component {
   render() {
     return (
       <div className="FormMain">
-        {!this.state.roomId ? 
-        <>
-          <button className="Button" onClick={() => { this.createRoom('abc') }}>Create Room</button>
-          <button className="Button" onClick={() => { this.joinRoom('abc') }}>Join Room</button>
-        </> : 
-        <>
-          <button className="Button" onClick={() => {this.outRoom()}}>Leave</button>
-        </>}
+        {!this.state.roomId ?
+          <>
+            <button className="Button" onClick={() => { this.createRoom('abc') }}>Create Room</button>
+            <button className="Button" onClick={() => { this.joinRoom('abc') }}>Join Room</button>
+          </> :
+          <>
+            <button className="Button" onClick={() => { this.outRoom() }}>Leave</button>
+          </>}
         {this.videosRender()}
       </div>
     );
