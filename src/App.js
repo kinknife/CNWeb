@@ -35,6 +35,7 @@ class App extends Component {
     if (obj && obj.token) {
       const { token } = obj;
       connectionService.verify(token).then(json => {
+        console.log(json);
         if (json.success) {
           this.setState({
             token: token,
@@ -226,7 +227,7 @@ class App extends Component {
               <button activeClassName="SwitchActive" className="Switch" onClick={this.logout}>Log Out</button>
             </div>
 
-            <Route exact path="/home" component={AppMain}>
+            <Route exact path="/home" render={() => <AppMain userId={this.state.userId}/>}>
             </Route>
             <Route exact path="/info" render={() => <Account ref={(info) => {this.info = info}} userId={this.state.userId} connectionService={connectionService}/>}>
             </Route>

@@ -244,7 +244,7 @@ class AppMain extends Component {
       <div className="FormMain">
         {!this.state.roomId ?
           <>
-            <button className="Button" onClick={() => { this.createRoom('abc') }}>Create Room</button>
+            {this.props.userId ? <button className="Button" onClick={() => { this.createRoom('abc') }}>Create Room</button>: null}
             <button className="Button" onClick={() => { this.joinRoom('abc') }}>Join Room</button>
           </> :
           <>
